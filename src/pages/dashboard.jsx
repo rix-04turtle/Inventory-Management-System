@@ -1,39 +1,21 @@
-import { AppSidebar } from "@/components/applayout/app-sidebar"
+
 import { ChartAreaInteractive } from "@/components/applayout/chart-area-interactive"
 import { DataTable } from "@/components/applayout/data-table"
 import { SectionCards } from "@/components/applayout/section-cards"
-import { SiteHeader } from "@/components/applayout/site-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-
 import data from "../app/dashboard/data.json"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { DashboardLayout } from "@/components/applayout/with-dashboard-layout"
+
 
 export default function Page() {
   return (
-    <TooltipProvider>
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)"
-        }
-      }>
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div>
-              <DataTable data={data} />
-            </div>
-          </div>
+    <DashboardLayout>
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <SectionCards />
+        <div className="px-4 lg:px-6">
+          <ChartAreaInteractive />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
-</TooltipProvider>
+        <DataTable data={data} />
+      </div>
+    </DashboardLayout>
   );
 }
