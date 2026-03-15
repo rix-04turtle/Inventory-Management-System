@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,24 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import toast from "react-hot-toast";
 
-export default function SignUpPage() {
+export default function LogInPage() {
   const router = useRouter();
-  const { role } = router.query;
   
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
-    password: '',
-    phone: '',
-    role: ''
+    password: ''
   });
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (role) {
-      setFormData(prev => ({ ...prev, role: role.toString() }));
-    }
-  }, [role]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,8 +25,8 @@ export default function SignUpPage() {
     setLoading(true);
     
     try {
-      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-      const API = `${BASE_URL}/user/signup`; // Assuming base path is /user and route is /signup mapped to userSignUp
+      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'; // Make sure this defaults effectively or env is loaded
+      const API = `${BASE_URL}/user/logIn`; // Match the routes configuration
       
       const response = await fetch(API, {
         method: 'POST',
@@ -48,15 +38,17 @@ export default function SignUpPage() {
 
       const data = await response.json();
       
-      if (data.status === 'success') {
-        toast.success("Account created successfully!");
+      if (response.ok && data.status === 'success') {
+        toast.success("Logged in successfully!");
+        // Store the token (e.g., in localStorage or cookies)
+        localStorage.setItem('token', data.token);
         router.push('/dashboard');
       } else {
-        toast.error(`Error: ${data.message}`);
+        toast.error(`Error: ${data.error || data.message || "Incorrect email or password."}`);
       }
     } catch (err) {
-      console.error("Sign up error:", err);
-      toast.error("An error occurred during sign up.");
+      console.error("Log in error:", err);
+      toast.error("An error occurred during log in.");
     } finally {
       setLoading(false);
     }
@@ -66,24 +58,13 @@ export default function SignUpPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="text-2xl">Log In</CardTitle>
           <CardDescription>
-            Signing up as: <span className="font-semibold text-primary">{formData.role || '...'}</span>
+            Enter your credentials to access your account.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input 
-                id="name" 
-                name="name" 
-                placeholder="John Doe" 
-                required 
-                value={formData.name}
-                onChange={handleChange}
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input 
@@ -93,17 +74,6 @@ export default function SignUpPage() {
                 placeholder="john@example.com" 
                 required 
                 value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input 
-                id="phone" 
-                name="phone" 
-                type="tel" 
-                placeholder="+1 234 567 890" 
-                value={formData.phone}
                 onChange={handleChange}
               />
             </div>
@@ -118,25 +88,15 @@ export default function SignUpPage() {
                 onChange={handleChange}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Input 
-                id="role" 
-                name="role" 
-                value={formData.role}
-                readOnly
-                className="bg-muted text-muted-foreground"
-              />
-            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading || !formData.role}>
-              {loading ? "Signing up..." : "Sign Up"}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Logging in..." : "Log In"}
             </Button>
             <div className="text-sm text-center text-muted-foreground w-full">
-              Already have an account?{" "}
-              <Button variant="link" className="p-0 h-auto" onClick={() => router.push('/user/logIn')}>
-                Log in
+              Don't have an account?{" "}
+              <Button variant="link" className="p-0 h-auto" onClick={() => router.push('/')}>
+                Sign up
               </Button>
             </div>
           </CardFooter>
