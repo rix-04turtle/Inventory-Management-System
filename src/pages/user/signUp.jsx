@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const { role } = router.query;
   
   const [formData, setFormData] = useState({
@@ -53,7 +55,7 @@ export default function SignUpPage() {
       if (response.ok && data.status === 'success') {
         toast.success("Account created successfully!");
         if (data.token) {
-          localStorage.setItem('token', data.token);
+          login(data.token);
         }
         router.push('/dashboard');
       } else {

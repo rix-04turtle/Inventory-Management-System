@@ -13,105 +13,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon, ShoppingBagIcon, ShoppingCartIcon } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Guest",
+    email: "guest@example.com",
+    avatar: "/avatars/guest.jpg",
   },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: (
-        <LayoutDashboardIcon />
-      ),
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: (
-        <ListIcon />
-      ),
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: (
-        <ChartBarIcon />
-      ),
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: (
-        <FolderIcon />
-      ),
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: (
-        <UsersIcon />
-      ),
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: (
-        <CameraIcon />
-      ),
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: (
-        <FileTextIcon />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: (
-        <FileTextIcon />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
   navSecondary: [
     {
       title: "Settings",
@@ -150,40 +60,88 @@ const data = {
         <FileChartColumnIcon />
       ),
     },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: (
-        <FileIcon />
-      ),
-    },
   ],
 }
 
 export function AppSidebar({
   ...props
 }) {
+  const { user } = useAuth();
+  const role = user?.role || "GUEST";
+
+  // Build navMain dynamically based on role
+  const navMainItems = [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: <LayoutDashboardIcon />,
+      roles: ["ADMIN", "RETAILER", "CUSTOMER"],
+    },
+    {
+      title: "Shop",
+      url: "/shop",
+      icon: <ShoppingBagIcon />,
+      roles: ["RETAILER", "CUSTOMER"],
+    },
+    {
+      title: "Products",
+      url: "/products",
+      icon: <ListIcon />,
+      roles: ["ADMIN", "RETAILER"],
+    },
+    {
+      title: "Add Product",
+      url: "/products/add",
+      icon: <FolderIcon />,
+      roles: ["ADMIN", "RETAILER"],
+    },
+    {
+      title: "Cart",
+      url: "/shop/cart",
+      icon: <ShoppingCartIcon />,
+      roles: ["CUSTOMER", "RETAILER"],
+    },
+    {
+      title: "Inventory",
+      url: role === "ADMIN" ? "/inventory/admin" : "/inventory/retailer",
+      icon: <DatabaseIcon />,
+      roles: ["ADMIN", "RETAILER"],
+    },
+    {
+      title: role === "ADMIN" ? "Orders" : "My Orders",
+      url: role === "ADMIN" ? "/orders/my/admin" : "/orders/my/retailer",
+      icon: <FileTextIcon />,
+      roles: ["ADMIN", "RETAILER"],
+    }
+  ].filter(item => item.roles.includes(role));
+
+  const currentUserData = user ? {
+    name: user.name,
+    email: user.email,
+    avatar: "/avatars/guest.jpg" // Placeholder
+  } : data.user;
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
-              <a href="#">
+              <a href="/">
                 <CommandIcon className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Inventory System</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        {navMainItems.length > 0 && <NavMain items={navMainItems} />}
+        {role === "ADMIN" && <NavDocuments items={data.documents} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={currentUserData} />
       </SidebarFooter>
     </Sidebar>
   );

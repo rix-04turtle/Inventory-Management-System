@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LogInPage() {
   const router = useRouter();
+  const { login } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -42,8 +44,8 @@ export default function LogInPage() {
       
       if (response.ok && data.status === 'success') {
         toast.success("Logged in successfully!");
-        // Store the token (e.g., in localStorage or cookies)
-        localStorage.setItem('token', data.token);
+        // Store the token and update Auth context
+        login(data.token);
         router.push('/dashboard');
       } else {
         toast.error(`Error: ${data.error || data.message || "Incorrect email or password."}`);
