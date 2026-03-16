@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
     if (!token) {
       setUser(null);
       setLoading(false);
-      return;
+      return null;
     }
 
     try {
@@ -26,13 +26,16 @@ export function AuthProvider({ children }) {
       
       if (data.status === 'success') {
         setUser(data.user);
+        return data.user;
       } else {
         localStorage.removeItem('token');
         setUser(null);
+        return null;
       }
     } catch (error) {
       console.error("Failed to fetch user:", error);
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -42,9 +45,9 @@ export function AuthProvider({ children }) {
     fetchUser();
   }, []);
 
-  const login = (token) => {
+  const login = async (token) => {
     localStorage.setItem('token', token);
-    fetchUser();
+    return await fetchUser();
   };
 
   const logout = () => {

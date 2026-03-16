@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ChartAreaInteractive } from "@/components/applayout/chart-area-interactive"
 import { DataTable } from "@/components/applayout/data-table"
 import { SectionCards } from "@/components/applayout/section-cards"
-import data from "../app/dashboard/data.json"
+import data from "../../app/dashboard/data.json"
 import { DashboardLayout } from "@/components/applayout/with-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"

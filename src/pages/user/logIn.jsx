@@ -45,8 +45,16 @@ export default function LogInPage() {
       if (response.ok && data.status === 'success') {
         toast.success("Logged in successfully!");
         // Store the token and update Auth context
-        login(data.token);
-        router.push('/dashboard');
+        const loggedInUser = await login(data.token);
+        if (loggedInUser?.role === 'ADMIN') {
+          router.push('/dashboard/admin');
+        } else if (loggedInUser?.role === 'RETAILER') {
+          router.push('/dashboard/retailer');
+        } else if (loggedInUser?.role === 'CUSTOMER') {
+          router.push('/dashboard/customer');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         toast.error(`Error: ${data.error || data.message || "Incorrect email or password."}`);
       }

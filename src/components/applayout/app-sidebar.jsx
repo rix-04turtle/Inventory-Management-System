@@ -73,7 +73,7 @@ export function AppSidebar({
   const navMainItems = [
     {
       title: "Dashboard",
-      url: "/dashboard",
+      url: role === "ADMIN" ? "/dashboard/admin" : role === "RETAILER" ? "/dashboard/retailer" : "/dashboard/customer",
       icon: <LayoutDashboardIcon />,
       roles: ["ADMIN", "RETAILER", "CUSTOMER"],
     },

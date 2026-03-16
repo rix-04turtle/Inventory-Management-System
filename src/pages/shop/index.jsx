@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Loader2, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, Loader2, Minus, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -139,6 +139,43 @@ export default function ShopPage() {
       toast.error("Failed to add to cart");
     } finally {
       setIsAddingId(null);
+    }
+  };
+
+  const handleRemoveFromCart = async (itemIdToRemove) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+      
+      // Update cart to filter out this item
+      const updatedItems = cartItems
+        .filter(item => (item.retailerInventoryId?._id || item.retailerInventoryId) !== itemIdToRemove)
+        .map(item => ({
+          retailerInventoryId: item.retailerInventoryId._id || item.retailerInventoryId,
+          quantity: item.quantity
+        }));
+
+      const updateRes = await fetch(`${BASE_URL}/user/cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ items: updatedItems })
+      });
+      
+      const updateData = await updateRes.json();
+      if (updateData.success) {
+        toast.success("Item removed from cart");
+        fetchCartItems();
+      } else {
+        toast.error(updateData.message || "Failed to remove item");
+      }
+    } catch (error) {
+      console.error("Remove from cart error:", error);
+      toast.error("Failed to remove item");
     }
   };
 
@@ -316,8 +353,16 @@ export default function ShopPage() {
                               <div className="text-xs text-muted-foreground font-medium">Qty: <span className="text-foreground">{cartItem.quantity}</span></div>
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0 pl-2">
+                          <div className="text-right flex-shrink-0 pl-2 flex flex-col items-end gap-2">
                             <div className="text-sm font-bold">${price.toFixed(2)}</div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => handleRemoveFromCart(cartItem.retailerInventoryId?._id || cartItem.retailerInventoryId)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       );
