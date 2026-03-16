@@ -42,7 +42,12 @@ const ViewProduct = () => {
       const API = `${BASE_URL}/products/view`;
 
       try {
-        const response = await fetch(API);
+        const token = localStorage.getItem('token');
+        const response = await fetch(API, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const data = await response.json();
         if (data.status === 'success' && data.products) {
           const fetchedProducts = data.products;

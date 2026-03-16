@@ -45,6 +45,7 @@ const MyOrdersRetailers = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [receivingId, setReceivingId] = useState(null);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -79,6 +80,37 @@ const MyOrdersRetailers = () => {
       setError('An error occurred while fetching orders.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAcceptDelivery = async (orderId) => {
+    setReceivingId(orderId);
+    try {
+      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+      const API = `${BASE_URL}/orders/receive`;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+      const response = await fetch(API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ orderId })
+      });
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+         // Update visually instantly
+         setOrders(orders.map(o => o._id === orderId ? { ...o, orderStatus: 'DELIVERED' } : o));
+      } else {
+         alert(data.message || "Failed to mark as delivered");
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    } finally {
+      setReceivingId(null);
     }
   };
 
@@ -137,6 +169,19 @@ const MyOrdersRetailers = () => {
                     <Badge variant="outline" className={getStatusColor(order.orderStatus)}>
                       {order.orderStatus || 'N/A'}
                     </Badge>
+                    {order.orderStatus === 'SHIPPED' && (
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleAcceptDelivery(order._id)}
+                        disabled={receivingId === order._id}
+                        className="bg-green-600 hover:bg-green-700 text-white mt-2"
+                      >
+                        {receivingId === order._id ? (
+                           <RefreshCwIcon className="h-4 w-4 animate-spin mr-2" />
+                        ) : null}
+                        Accept Delivery
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
