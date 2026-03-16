@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import toast from "react-hot-toast";
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function SignUpPage() {
     role: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (role) {
@@ -48,8 +50,11 @@ export default function SignUpPage() {
 
       const data = await response.json();
       
-      if (data.status === 'success') {
+      if (response.ok && data.status === 'success') {
         toast.success("Account created successfully!");
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
         router.push('/dashboard');
       } else {
         toast.error(`Error: ${data.message}`);
@@ -107,16 +112,26 @@ export default function SignUpPage() {
                 onChange={handleChange}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                name="password" 
-                type="password" 
-                required 
-                value={formData.password}
-                onChange={handleChange}
-              />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  name="password" 
+                  type={showPassword ? "text" : "password"} 
+                  required 
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 
 export default function CartPage() {
   const router = useRouter();
@@ -27,46 +27,60 @@ export default function CartPage() {
     );
     setCart(updatedCart);
     localStorage.setItem('retailerCart', JSON.stringify(updatedCart));
-    toast('Item removed from cart');
+    toast.success('Item removed from cart');
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (cart.length === 0) return;
     setIsProcessing(true);
 
-    // Grouping orders by admin
-    const ordersByAdmin = {};
-    cart.forEach(item => {
-      if (!ordersByAdmin[item.adminId]) {
-        ordersByAdmin[item.adminId] = {
-          orderId: `ORD-${Math.floor(Math.random() * 1000000)}`,
-          adminId: item.adminId,
-          retailerId: 'Retailer-123', // Demo retailer
-          items: [],
-          totalAmount: 0,
-          status: 'PENDING',
-          date: new Date().toISOString()
-        };
+    try {
+      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const API = `${BASE_URL}/orders/place`;
+
+      // API expects { items: [{ id: productID, quantity: qty }] }
+      const items = cart.map(item => ({
+        id: item.product.id,
+        quantity: item.quantity
+      }));
+
+      const token = localStorage.getItem('token'); // Assuming standard token storage
+
+      const response = await fetch(API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ items })
+      });
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        toast.success(
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold">Order placed successfully!</span>
+            <span className="text-sm">Total: ${data.totalAmount}</span>
+            <span className="text-xs text-gray-500">Order ID: {data.orderId}</span>
+          </div>,
+          { duration: 5000 }
+        );
+        
+        // Clear Cart
+        setCart([]);
+        localStorage.removeItem('retailerCart');
+        
+        router.push('/products/viewProduct');
+      } else {
+        toast.error(`Error: ${data.message || 'Failed to place order'}`);
       }
-      ordersByAdmin[item.adminId].items.push(item);
-      ordersByAdmin[item.adminId].totalAmount += (item.product.price * item.quantity);
-    });
-
-    // Simulate sending orders to DB and sending notifications to admins
-    setTimeout(() => {
-      const existingReqs = JSON.parse(localStorage.getItem('adminOrderRequests') || '[]');
-      const newRequests = [...existingReqs, ...Object.values(ordersByAdmin)];
-      localStorage.setItem('adminOrderRequests', JSON.stringify(newRequests));
-
-      toast('Order placed successfully! Notifications sent to Admin(s).');
-      
-      // Clear Cart
-      setCart([]);
-      localStorage.removeItem('retailerCart');
+    } catch (error) {
+      console.error('Error placing order:', error);
+      toast.error('An error occurred while placing your order.');
+    } finally {
       setIsProcessing(false);
-      
-      router.push('/products/viewProduct');
-    }, 1000);
+    }
   };
 
   const totalCost = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
