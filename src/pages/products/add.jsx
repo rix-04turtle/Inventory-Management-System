@@ -57,6 +57,11 @@ export default function ProductList() {
         rawData.json(),
       );
       console.log(response);
+      if (response && response.status === 'success') {
+        window.location.href = '/products';
+      } else {
+        window.location.href = '/products';
+      }
     } catch (err) {
       console.error("IT's a Error", err);
     }
