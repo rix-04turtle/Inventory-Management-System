@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ShoppingCart, ShoppingBag, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
+import AuthHOC from "@/components/AuthHOC";
 
-export default function CustomerDashboard() {
+function CustomerDashboard() {
   const router = useRouter();
 
   return (
@@ -48,3 +49,5 @@ export default function CustomerDashboard() {
     </DashboardLayout>
   );
 }
+
+export default AuthHOC(CustomerDashboard);
